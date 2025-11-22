@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estimador de Renta</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 50px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #result {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9ff;
+            border-radius: 12px;
+            min-height: 30px;
+            border-left: 5px solid #667eea;
+        }
+
+        .result-content {
+            display: grid;
+            gap: 20px;
+        }
+
+        .result-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .result-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .result-icon.price {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .result-icon.size {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .result-icon.sqm {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .result-text {
+            flex: 1;
+        }
+
+        .result-label {
+            color: #999;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .result-value {
+            color: #333;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-size: 16px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .error {
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #d32f2f;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 26px;
+            }
+
+            #result {
+                padding: 20px;
+            }
+
+            .result-value {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 Estimador de Renta</h1>
+        <p class="subtitle">Descubre el precio de renta y tamaño de apartamentos</p>
+
+        <div class="form-group">
+            <label for="address">Ingresa una dirección:</label>
+            <input id="address" type="text" placeholder="Ej: Lima, Perú" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+            <label for="desired_sqm">¿Cuántos m² quieres rentar?</label>
+            <input id="desired_sqm" type="number" min="1" step="0.1" placeholder="Ej: 50" autocomplete="off">
+        </div>
+
+        <button onclick="getEstimation()">Calcular</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function getEstimation() {
+            const addr = document.getElementById("address").value;
+            const desiredInput = document.getElementById("desired_sqm");
+            const desired = desiredInput ? desiredInput.value : '';
+            const resultElement = document.getElementById("result");
+
+            if (!addr.trim()) {
+                resultElement.innerHTML = '<div class="error">Por favor ingresa una dirección</div>';
+                return;
+            }
+
+            if (!desired || isNaN(desired) || Number(desired) <= 0) {
+                resultElement.innerHTML = '<div class="error">Por favor ingresa una cantidad válida de metros cuadrados</div>';
+                return;
+            }
+
+            const desiredMeters = Number(desired);
+
+            resultElement.innerHTML = '<div class="loading">⏳ Buscando información...</div>';
+
+            const response = await fetch("/api/rent", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ address: addr })
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                resultElement.innerHTML = `<div class="error">⚠️ Error: ${data.error}</div>`;
+                return;
+            }
+
+            // Parse price_per_sqm safely
+            function parseNumber(str) {
+                if (!str) return NaN;
+                const cleaned = String(str).replace(/[^0-9,.-]/g, '').replace(/,/g, '.');
+                return parseFloat(cleaned);
+            }
+
+            const pricePerSqm = parseNumber(data.price_per_sqm);
+
+            if (!isFinite(pricePerSqm) || pricePerSqm <= 0) {
+                resultElement.innerHTML = `<div class="error">No se pudo obtener un precio por m² válido desde el servidor.</div>`;
+                return;
+            }
+
+            const totalRent = pricePerSqm * desiredMeters;
+
+            // Format numbers for display
+            const formatterCurrency = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' });
+            const formatterNumber = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 2 });
+
+            resultElement.innerHTML = `
+                <div class="result-content">
+                    <div class="result-item">
+                        <div class="result-icon sqm">📊</div>
+                        <div class="result-text">
+                            <div class="result-label">Renta por m²</div>
+                            <div class="result-value">${formatterCurrency.format(pricePerSqm)}</div>
+                        </div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-icon price">💸</div>
+                        <div class="result-text">
+                            <div class="result-label">Renta estimada para ${formatterNumber.format(desiredMeters)} m²</div>
+                            <div class="result-value">${formatterCurrency.format(totalRent)}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Submit on Enter for both inputs
+        document.getElementById("address").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                getEstimation();
+            }
+        });
+
+        const desiredInputEl = document.getElementById("desired_sqm");
+        if (desiredInputEl) {
+            desiredInputEl.addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    getEstimation();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
