@@ -25,43 +25,69 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 50px;
-            max-width: 500px;
+            padding: 40px;
+            max-width: 900px;
             width: 100%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
         }
 
         h1 {
             color: #333;
-            margin-bottom: 10px;
-            font-size: 32px;
+            margin-bottom: 8px;
+            font-size: 28px;
             text-align: center;
         }
 
         .subtitle {
             color: #666;
             text-align: center;
-            margin-bottom: 30px;
-            font-size: 14px;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+
+        .form-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 8px;
+        }
+
+        .form-wrapper::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .form-wrapper::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .form-wrapper::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 16px;
         }
 
         label {
             display: block;
             color: #555;
             font-weight: 600;
-            margin-bottom: 10px;
-            font-size: 14px;
+            margin-bottom: 6px;
+            font-size: 12px;
         }
 
         input {
             width: 100%;
-            padding: 12px 15px;
+            padding: 10px 12px;
             border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 6px;
+            font-size: 14px;
             transition: all 0.3s ease;
             font-family: inherit;
         }
@@ -72,14 +98,22 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
         button {
-            width: 100%;
-            padding: 14px;
+            flex: 1;
+            padding: 12px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 6px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -184,17 +218,38 @@
             }
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 900px) {
+            .form-wrapper {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
             .container {
-                padding: 30px 20px;
+                padding: 30px;
+                max-width: 100%;
             }
 
             h1 {
-                font-size: 26px;
+                font-size: 24px;
             }
 
-            #result {
-                padding: 20px;
+            .subtitle {
+                font-size: 11px;
+                margin-bottom: 15px;
+            }
+
+            label {
+                font-size: 11px;
+            }
+
+            input {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+
+            button {
+                font-size: 13px;
+                padding: 10px;
             }
 
             .result-value {
@@ -208,27 +263,80 @@
         <h1>🏠 Estimador de Renta</h1>
         <p class="subtitle">Descubre el precio de renta y tamaño de apartamentos</p>
 
-        <div class="form-group">
-            <label for="address">Ingresa una dirección:</label>
-            <input id="address" type="text" placeholder="Ej: Lima, Perú" autocomplete="off">
+        <div class="form-wrapper">
+            <div class="form-group">
+                <label for="address">Ingresa una dirección:</label>
+                <input id="address" type="text" placeholder="Ej: Lima, Perú" autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label for="desired_sqm">¿Cuántos m² quieres rentar?</label>
+                <input id="desired_sqm" type="number" min="1" step="0.1" placeholder="Ej: 50" autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label for="property_price">Precio de la vivienda (PEN)</label>
+                <input id="property_price" type="number" min="0" step="0.01" placeholder="Ej: 300000" autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label for="down_payment">Pago inicial (PEN) <span style="color: #999; font-weight: 400;">- 10% por defecto</span></label>
+                <input id="down_payment" type="number" min="0" step="0.01" placeholder="Ej: 60000" autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label for="annual_interest">Tasa de interés anual (%)</label>
+                <input id="annual_interest" type="number" min="0" step="0.01" placeholder="Ej: 7.5" autocomplete="off" value="10">
+            </div>
+
+            <div class="form-group">
+                <label for="loan_term">Plazo del préstamo (años)</label>
+                <input id="loan_term" type="number" min="0" step="1" placeholder="Ej: 20" autocomplete="off" value="20">
+            </div>
+
+            <div class="form-group">
+                <label for="maintenance_annual">Costo de mantenimiento anual (PEN)</label>
+                <input id="maintenance_annual" type="number" min="0" step="0.01" placeholder="Ej: 1200" autocomplete="off">
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="desired_sqm">¿Cuántos m² quieres rentar?</label>
-            <input id="desired_sqm" type="number" min="1" step="0.1" placeholder="Ej: 50" autocomplete="off">
+        <div class="button-group">
+            <button onclick="getEstimation()">Calcular</button>
         </div>
-
-        <button onclick="getEstimation()">Calcular</button>
 
         <div id="result"></div>
     </div>
 
     <script>
+        // Auto-calculate down payment as 10% of property price
+        document.getElementById('property_price').addEventListener('input', function(){
+            const propertyPrice = Number(this.value || 0);
+            if (propertyPrice > 0) {
+                const downPaymentField = document.getElementById('down_payment');
+                // Only auto-fill if the field is empty or has the old calculated value
+                if (!downPaymentField.value || downPaymentField.dataset.autoCalculated === 'true') {
+                    const calculatedDownPayment = propertyPrice * 0.1;
+                    downPaymentField.value = calculatedDownPayment.toFixed(2);
+                    downPaymentField.dataset.autoCalculated = 'true';
+                }
+            }
+        });
+
+        // Allow user to manually override the down payment
+        document.getElementById('down_payment').addEventListener('input', function(){
+            this.dataset.autoCalculated = 'false';
+        });
+
         async function getEstimation() {
             const addr = document.getElementById("address").value;
             const desiredInput = document.getElementById("desired_sqm");
             const desired = desiredInput ? desiredInput.value : '';
             const resultElement = document.getElementById("result");
+            const propertyPrice = Number(document.getElementById('property_price').value || 0);
+            const downPayment = Number(document.getElementById('down_payment').value || 0);
+            const annualInterest = Number(document.getElementById('annual_interest').value || 0);
+            const loanTermYears = Number(document.getElementById('loan_term').value || 0);
+            const maintenanceAnnual = Number(document.getElementById('maintenance_annual').value || 0);
 
             if (!addr.trim()) {
                 resultElement.innerHTML = '<div class="error">Por favor ingresa una dirección</div>';
@@ -271,49 +379,66 @@
                 return;
             }
 
-            const totalRent = pricePerSqm * desiredMeters;
+            // Validate mortgage inputs (property price and term required to compute mortgage)
+            if (!(propertyPrice > 0) || !(loanTermYears > 0) || !(annualInterest >= 0)) {
+                resultElement.innerHTML = '<div class="error">Por favor ingresa precio de vivienda, tasa de interés y plazo válidos para calcular la cuota.</div>';
+                return;
+            }
 
-            // Format numbers for display
-            const formatterCurrency = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' });
-            const formatterNumber = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 2 });
+            // Check that down payment is not greater than property price
+            if (downPayment > propertyPrice) {
+                resultElement.innerHTML = '<div class="error">El pago inicial no puede ser mayor que el precio de la vivienda.</div>';
+                return;
+            }
 
-            resultElement.innerHTML = `
-                <div class="result-content">
-                    <div class="result-item">
-                        <div class="result-icon sqm">📊</div>
-                        <div class="result-text">
-                            <div class="result-label">Renta por m²</div>
-                            <div class="result-value">${formatterCurrency.format(pricePerSqm)}</div>
-                        </div>
-                    </div>
-                    <div class="result-item">
-                        <div class="result-icon price">💸</div>
-                        <div class="result-text">
-                            <div class="result-label">Renta estimada para ${formatterNumber.format(desiredMeters)} m²</div>
-                            <div class="result-value">${formatterCurrency.format(totalRent)}</div>
-                        </div>
-                    </div>
-                </div>
-            `;
+            const totalRent = pricePerSqm * desiredMeters; // monthly rent assumed
+
+            // Calculate loan amount after down payment
+            const loanAmount = propertyPrice - downPayment;
+
+            // Mortgage monthly payment calculation
+            function monthlyMortgage(P, annualPct, years){
+                const monthlyRate = annualPct / 100 / 12;
+                const n = Math.round(years * 12);
+                if (monthlyRate === 0) return P / n;
+                const pow = Math.pow(1 + monthlyRate, n);
+                return P * (monthlyRate * pow) / (pow - 1);
+            }
+
+            const monthlyMortgagePayment = monthlyMortgage(loanAmount, annualInterest, loanTermYears);
+            const monthlyMaintenance = maintenanceAnnual / 12;
+            const netMonthlyIncome = totalRent - monthlyMortgagePayment - monthlyMaintenance;
+
+            // Prepare result object and redirect to results page
+            const resultObj = {
+                price_per_sqm: pricePerSqm,
+                desired_meters: desiredMeters,
+                total_rent_monthly: totalRent,
+                down_payment: downPayment,
+                loan_amount: loanAmount,
+                monthly_mortgage_payment: monthlyMortgagePayment,
+                monthly_maintenance: monthlyMaintenance,
+                net_monthly_income: netMonthlyIncome
+            };
+
+            // store raw numbers for results page and navigate
+            sessionStorage.setItem('rent_results', JSON.stringify(resultObj));
+            window.location.href = '/results';
         }
 
-        // Submit on Enter for both inputs
-        document.getElementById("address").addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                getEstimation();
+        // Submit on Enter for relevant inputs
+        const enterSubmitIds = ['address','desired_sqm','property_price','down_payment','annual_interest','loan_term','maintenance_annual'];
+        enterSubmitIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('keypress', function(event){
+                    if (event.key === 'Enter'){
+                        event.preventDefault();
+                        getEstimation();
+                    }
+                });
             }
         });
-
-        const desiredInputEl = document.getElementById("desired_sqm");
-        if (desiredInputEl) {
-            desiredInputEl.addEventListener("keypress", function(event) {
-                if (event.key === "Enter") {
-                    event.preventDefault();
-                    getEstimation();
-                }
-            });
-        }
     </script>
 </body>
 </html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Resultados - Estimador de Renta</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+        .card { background: #fff; border-radius: 16px; padding: 30px; width: 100%; max-width:720px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+        h1 { margin-bottom: 6px; font-size: 26px; }
+        p.subtitle { color:#666; margin-bottom:18px; }
+        .grid { display:grid; grid-template-columns: 1fr 1fr; gap:18px; }
+        .item { background:#f8f9ff; padding:18px; border-radius:12px; border-left:5px solid #667eea; }
+        .label { font-size:12px; color:#888; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:8px; }
+        .value { font-size:20px; font-weight:700; color:#222; }
+        .big { grid-column: 1 / -1; text-align:center; }
+        .actions { margin-top:18px; display:flex; gap:12px; justify-content:center; }
+        button { padding:10px 18px; border-radius:8px; border:none; cursor:pointer; font-weight:600; }
+        .btn-back { background:#e0e0e0; }
+        .btn-new { background: linear-gradient(135deg,#667eea,#764ba2); color:white; }
+        @media (max-width:640px){ .grid{ grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Resultados</h1>
+        <p class="subtitle">Desglose y renta neta mensual</p>
+
+        <div id="content">
+            <p class="subtitle">Cargando resultados...</p>
+        </div>
+
+        <div class="actions">
+            <button class="btn-back" id="backBtn">← Volver al formulario</button>
+            <button class="btn-new" id="newSearch">Hacer otra consulta</button>
+        </div>
+    </div>
+
+    <script>
+        function fmtCurrency(val){
+            try{ return new Intl.NumberFormat('es-PE',{ style:'currency', currency:'PEN' }).format(val); }catch(e){ return val; }
+        }
+
+        const dataRaw = sessionStorage.getItem('rent_results');
+        const contentEl = document.getElementById('content');
+
+        if (!dataRaw) {
+            contentEl.innerHTML = '<p class="subtitle">No hay resultados disponibles. Hace una búsqueda primero.</p>';
+        } else {
+            const d = JSON.parse(dataRaw);
+
+            // build UI
+            contentEl.innerHTML = `
+                <div class="grid">
+                    <div class="item">
+                        <div class="label">Renta por m²</div>
+                        <div class="value">${fmtCurrency(d.price_per_sqm)}</div>
+                    </div>
+                    <div class="item">
+                        <div class="label">Renta mensual (para ${d.desired_meters} m²)</div>
+                        <div class="value">${fmtCurrency(d.total_rent_monthly)}</div>
+                    </div>
+
+                    <div class="item">
+                        <div class="label">Pago inicial</div>
+                        <div class="value">${fmtCurrency(d.down_payment)}</div>
+                    </div>
+                    <div class="item">
+                        <div class="label">Monto del préstamo</div>
+                        <div class="value">${fmtCurrency(d.loan_amount)}</div>
+                    </div>
+
+                    <div class="item">
+                        <div class="label">Cuota hipotecaria mensual</div>
+                        <div class="value">${fmtCurrency(d.monthly_mortgage_payment)}</div>
+                    </div>
+                    <div class="item">
+                        <div class="label">Mantenimiento mensual</div>
+                        <div class="value">${fmtCurrency(d.monthly_maintenance)}</div>
+                    </div>
+
+                    <div class="item big">
+                        <div class="label">Ingreso neto mensual</div>
+                        <div class="value">${fmtCurrency(d.net_monthly_income)}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        document.getElementById('backBtn').addEventListener('click', ()=>{
+            window.location.href = '/';
+        });
+        document.getElementById('newSearch').addEventListener('click', ()=>{
+            // clear stored results but keep last inputs (optional)
+            // sessionStorage.removeItem('rent_results');
+            window.location.href = '/';
+        });
+    </script>
+</body>
+</html>

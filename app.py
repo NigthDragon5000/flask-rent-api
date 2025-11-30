@@ -8,7 +8,13 @@ app = Flask(__name__)
 
 # Initialize OpenAI client
 load_dotenv()
-client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    # Do not raise at import time; allow app to start and return a clear error on API calls
+    client = None
+    print("Warning: OPENAI_API_KEY not set. /api/rent will return an error until it's configured.")
+else:
+    client = OpenAI(api_key=api_key)
     
 
 @app.route("/")
@@ -22,6 +28,10 @@ def estimate_rent():
 
     if not address:
         return jsonify({"error": "Address is required"}), 400
+
+    # Ensure OpenAI client is configured
+    if client is None:
+        return jsonify({"error": "Server misconfiguration: OPENAI_API_KEY not set."}), 500
 
     # GPT-5.1 request (web-enabled search)
     response = client.responses.create(
@@ -66,6 +76,12 @@ def estimate_rent():
         "average_size": size,
         "price_per_sqm": price_per_sqm
     })
+
+
+
+@app.route("/results")
+def results_page():
+    return render_template("results.html")
 
 
 if __name__ == "__main__":
