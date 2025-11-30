@@ -137,14 +137,17 @@
                         return `CF${i}`;
                     });
 
-                    // Ensure correct sign: first should be negative (investment), rest positive
+                    // Adjust sign based on type: Inversión (negative), CF* (keep original), Venta - Deuda (positive)
                     const chartData = cashFlows.map((v, i) => {
                         if (i === 0) {
                             // First bar (Inversión) should be negative
                             return v < 0 ? v : -v;
-                        } else {
-                            // Other bars should be positive
+                        } else if (i === cashFlows.length - 1) {
+                            // Last bar (Venta - Deuda) should be positive
                             return v > 0 ? v : -v;
+                        } else {
+                            // Middle bars (CF1, CF2, etc.) keep original sign
+                            return v;
                         }
                     });
 
