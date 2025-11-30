@@ -36,6 +36,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         function fmtCurrency(val){
             try{ return new Intl.NumberFormat('es-PE',{ style:'currency', currency:'PEN' }).format(val); }catch(e){ return val; }
@@ -49,8 +50,26 @@
         } else {
             const d = JSON.parse(dataRaw);
 
-            // build UI
+            // look for cash flow data (accept several possible keys)
+            const cashFlowsRaw = d.cashFlowInformation || d.cash_flow_information || d.cashFlows || d.cash_flow || null;
+            let cashFlows = Array.isArray(cashFlowsRaw) ? cashFlowsRaw.map(v => Number(v)) : null;
+            
+            // If all cash flows are negative, multiply by -1 to display correctly
+            if (cashFlows && cashFlows.length && cashFlows.every(v => v <= 0)) {
+                cashFlows = cashFlows.map(v => -v);
+            }
+
+            // Build optional chart HTML
+            const chartHtml = cashFlows && cashFlows.length ? `
+                <div style="margin-bottom:18px; max-width:400px; margin-left:auto; margin-right:auto; position:relative; height:180px;">
+                    <div class="label" style="margin-bottom:8px;">Flujos de caja (años)</div>
+                    <canvas id="cashflowChart"></canvas>
+                </div>
+            ` : '';
+
+            // build UI (chart first, then grid)
             contentEl.innerHTML = `
+                ${chartHtml}
                 <div class="grid">
                     <div class="item">
                         <div class="label">Renta por m²</div>
@@ -79,12 +98,92 @@
                         <div class="value">${fmtCurrency(d.monthly_maintenance)}</div>
                     </div>
 
+                    <div class="item">
+                        <div class="label"> Valor de la propiedad en 5 años </div>
+                        <div class="value">${fmtCurrency(d.future_property_value)}</div>
+                    </div>
+
+                    <div class="item">
+                        <div class="label">Deuda pendiente en 5 años</div>
+                        <div class="value">${fmtCurrency(d.debt_remaining)}</div>
+                    </div>
+
                     <div class="item big">
                         <div class="label">Ingreso neto mensual</div>
                         <div class="value">${fmtCurrency(d.net_monthly_income)}</div>
                     </div>
+
+                    <div class="item big">
+                        <div class="label">Valor presente neto</div>
+                        <div class="value">${fmtCurrency(d.net_present_value)}</div>
+                    </div>
+
                 </div>
             `;
+
+            // If cash flows are available, render chart
+            if (cashFlows && cashFlows.length) {
+                try {
+                    const ctx = document.getElementById('cashflowChart').getContext('2d');
+                    // destroy existing chart instance if any (defensive)
+                    if (window._cashflowChartInstance) {
+                        window._cashflowChartInstance.destroy();
+                    }
+
+                    // Build custom labels
+                    const chartLabels = cashFlows.map((_, i) => {
+                        if (i === 0) return 'Inversión';
+                        if (i === cashFlows.length - 1) return 'Venta - Deuda';
+                        return `CF${i}`;
+                    });
+
+                    // Ensure correct sign: first should be negative (investment), rest positive
+                    const chartData = cashFlows.map((v, i) => {
+                        if (i === 0) {
+                            // First bar (Inversión) should be negative
+                            return v < 0 ? v : -v;
+                        } else {
+                            // Other bars should be positive
+                            return v > 0 ? v : -v;
+                        }
+                    });
+
+                    window._cashflowChartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: chartLabels,
+                            datasets: [{
+                                label: 'Flujo de caja (PEN)',
+                                data: chartData,
+                                backgroundColor: function(context) {
+                                    // Red for negative (investment), blue for positive
+                                    return context.parsed.y < 0 ? 'rgba(244,67,54,0.9)' : 'rgba(102,126,234,0.9)';
+                                }
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            indexAxis: 'x',
+                            scales: {
+                                y: { 
+                                    beginAtZero: true,
+                                    ticks: { font: { size: 10 } }
+                                },
+                                x: {
+                                    ticks: { font: { size: 10 } }
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { enabled: true }
+                            }
+                        }
+                    });
+                } catch (e) {
+                    console.warn('Chart rendering failed', e);
+                }
+            }
         }
 
         document.getElementById('backBtn').addEventListener('click', ()=>{

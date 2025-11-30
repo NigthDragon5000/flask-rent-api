@@ -298,6 +298,12 @@
                 <label for="maintenance_annual">Costo de mantenimiento anual (PEN)</label>
                 <input id="maintenance_annual" type="number" min="0" step="0.01" placeholder="Ej: 1200" autocomplete="off">
             </div>
+
+            <div class="form-group">
+                <label for="anual_rev">Revalorizacion anual</label>
+                <input id="anual_rev" type="number" min="0" step="1" placeholder="Ej: 3" autocomplete="off" value="3">
+            </div>
+
         </div>
 
         <div class="button-group">
@@ -337,6 +343,10 @@
             const annualInterest = Number(document.getElementById('annual_interest').value || 0);
             const loanTermYears = Number(document.getElementById('loan_term').value || 0);
             const maintenanceAnnual = Number(document.getElementById('maintenance_annual').value || 0);
+            const anualRev = Number(document.getElementById('anual_rev').value || 0);
+
+
+
 
             if (!addr.trim()) {
                 resultElement.innerHTML = '<div class="error">Por favor ingresa una dirección</div>';
@@ -393,6 +403,8 @@
 
             const totalRent = pricePerSqm * desiredMeters; // monthly rent assumed
 
+            /*console.log(anualRev);*/
+
             // Calculate loan amount after down payment
             const loanAmount = propertyPrice - downPayment;
 
@@ -407,7 +419,43 @@
 
             const monthlyMortgagePayment = monthlyMortgage(loanAmount, annualInterest, loanTermYears);
             const monthlyMaintenance = maintenanceAnnual / 12;
-            const netMonthlyIncome = totalRent - monthlyMortgagePayment - monthlyMaintenance;
+            const netMonthlyIncome = totalRent - monthlyMortgagePayment - monthlyMaintenance - 0.05 * totalRent; // assuming 5% other costs
+
+
+            /* Cash flow Calulation */
+            const discountRate = 7 / 100; // 7% discount rate
+            const netAnnualIncome = netMonthlyIncome * 12;
+            const investmentTime = 5; // years
+
+            /* Cash flow from Rent */
+            CF = 0 ; 
+            let cashFlowsRentDiscount = [];
+            let cashFlowInformation= [] ;
+            cashFlowInformation.push(-downPayment);
+            for (let t = 2; t <= investmentTime; t++) {
+                const Ct = netAnnualIncome / Math.pow(1 + discountRate , t);
+                cashFlowsRentDiscount.push(Ct);
+                cashFlowInformation.push(netAnnualIncome);
+                CF += Ct;
+            }
+
+            /* Final Sale Value after 5 years */
+            const futurePropertyValue = propertyPrice * Math.pow(1 + (anualRev / 100), investmentTime);
+ 
+            /* Debt Remaining after 5 years */
+            const monthlyDuration = Math.round(investmentTime * 12)
+            const monthlyRate = annualInterest / 100 / 12;
+            const debtRemaining = loanAmount * Math.pow(1 + monthlyRate, monthlyDuration ) -
+                 monthlyMortgagePayment * (Math.pow(1 + monthlyRate, monthlyDuration) - 1) / monthlyRate;
+
+            /* Cash Flow from Property Sale */
+            const cashFlowPropertySaleDiscount = (futurePropertyValue- debtRemaining )/ Math.pow(1 + discountRate, investmentTime);
+            CF += cashFlowPropertySaleDiscount;
+            cashFlowInformation.push(futurePropertyValue- debtRemaining);
+
+            /* Net present Value */
+            const NPV = CF - downPayment;
+
 
             // Prepare result object and redirect to results page
             const resultObj = {
@@ -418,7 +466,11 @@
                 loan_amount: loanAmount,
                 monthly_mortgage_payment: monthlyMortgagePayment,
                 monthly_maintenance: monthlyMaintenance,
-                net_monthly_income: netMonthlyIncome
+                net_monthly_income: netMonthlyIncome,
+                debt_remaining: debtRemaining,
+                future_property_value:futurePropertyValue,
+                net_present_value: NPV,
+                cash_flow_information: cashFlowInformation
             };
 
             // store raw numbers for results page and navigate
